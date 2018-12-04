@@ -79,7 +79,7 @@ int StudentWorld::move()
 		if ((*i)->isAlive())
 		{
 			(*i)->doSomething();
-			//If FrackMan dies
+			//If TunnelMan dies
 			if (!m_tunnelman->isAlive())
 			{
 				decLives();
@@ -104,4 +104,40 @@ int StudentWorld::move()
 		return GWSTATUS_PLAYER_DIED;
 	}
 	return GWSTATUS_CONTINUE_GAME;
+}
+int StudentWorld::getContentsOf(int x, int y)
+{
+	return grid[x][y];
+}
+StudentWorld::~StudentWorld() {
+	vector<Actor*>::iterator i;
+
+	for (i = m_actor.begin(); i != m_actor.end();)
+	{
+		delete *i;
+		i = m_actor.erase(i);
+	}
+	for (int k = 0; k<64; k++)
+	{
+		for (int l = 0; l<60; l++)
+		{
+			delete m_field[k][l];
+		}
+	}
+	delete[] grid;
+	delete m_tunnelman;
+}
+void StudentWorld::cleanUp() {
+	vector<Actor*>::iterator i;
+	for (i = m_actor.begin(); i != m_actor.end();) {
+		delete *i;
+		i = m_actor.erase(i);
+	}
+	for (int k = 0; k<64; k++) {
+		for (int l = 0; l<60; l++) {
+			delete m_field[k][l];
+		}
+	}
+	delete[] grid;
+	delete m_tunnelman;
 }

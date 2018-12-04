@@ -23,11 +23,13 @@ public:
 
 	virtual int move();
 
-	virtual void cleanUp()
-	{
-	}
+	virtual void cleanUp();
 
 	void textDisplay();
+
+	int getContentsOf(int x, int y);
+
+	~StudentWorld();
 
 private:
 	std::vector<Actor*> m_actor;
