@@ -141,3 +141,55 @@ void StudentWorld::cleanUp() {
 	delete[] grid;
 	delete m_tunnelman;
 }
+void StudentWorld::removeDirt(int x, int y)
+{
+
+	for (int i = x; i<x + 4; i++)
+	{
+		for (int j = y; j<y + 4; j++)
+		{
+			if (m_field[i][j] != nullptr)
+			{
+				delete m_field[i][j];
+				m_field[i][j] = nullptr;
+				grid[i][j] = 0;
+			}
+		}
+	}
+}
+void StudentWorld::setObject(int x, int y, int ID)
+{
+	switch (ID)
+	{
+	case TID_PLAYER:
+		m_field[x][y] = m_tunnelman;
+		break;
+	case TID_PROTESTER:
+
+		break;
+	case TID_HARD_CORE_PROTESTER:
+
+		break;
+	case TID_WATER_SPURT:
+		m_field[x][y] = new WaterSquirt(x, y, this,m_tunnelman->getDirection());
+		break;
+	case TID_BOULDER:
+
+		break;
+	case TID_BARREL:
+
+		break;
+	case TID_EARTH:
+		m_field[x][y] = new Earth(x, y, this);
+		break;
+	case TID_GOLD:
+
+		break;
+	case TID_SONAR:
+
+		break;
+	case TID_WATER_POOL:
+
+		break;
+	}
+}

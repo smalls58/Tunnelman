@@ -50,5 +50,12 @@ public:
 	int getAmmo()const;
 	int getSonar()const;
 	int getGold()const;
+	void shootWater(Direction dir, int x, int y);
+};
+class WaterSquirt : public Actor {
+public:
+	WaterSquirt(int x, int y, StudentWorld * world, Direction dir);
+	virtual ~WaterSquirt() {}
+	void virtual doSomething() {}
 };
 #endif // ACTOR_H_

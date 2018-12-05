@@ -33,44 +33,74 @@ void TunnelMan::doSomething()
 		return;
 	}
 
-	int ch;
-
-	if (getWorld()->getKey(ch))
+	if (!isAlive())
 	{
-		int a;
+		return;
+	}
 
-		switch (ch)
+	int KeyPressed = -1;
+	if (getWorld()->getKey(KeyPressed))
+	{
+		switch (KeyPressed)
 		{
-		case KEY_PRESS_LEFT:
-			a = getWorld()->getContentsOf(getX() - 1, getY());
-			if (getX() - 1 > 0 && a < 2)
-				setDirection(left);
-				moveTo(getX() - 1, getY());
-			break;
-
-		case KEY_PRESS_RIGHT:
-			a = getWorld()->getContentsOf(getX() + 1, getY());
-			if (getX() < 60 && a < 2)
-				setDirection(right);
-				moveTo(getX() + 1, getY());
-			break;
-
-		case KEY_PRESS_UP:
-			a = getWorld()->getContentsOf(getX(), getY() + 1);
-			if (getY() + 1 < 60 && a < 2)
+		case  KEY_PRESS_UP:
+			if (getY() <60)
+			{
 				setDirection(up);
 				moveTo(getX(), getY() + 1);
-			break;
 
+				getWorld()->removeDirt(getX(), getY());
+
+
+			}
+			break;
 		case KEY_PRESS_DOWN:
-			a = getWorld()->getContentsOf(getX(), getY() - 1);
-			if (getY() - 1 > 0 && a < 2)
+			if (getY() >0)
+			{
 				setDirection(down);
 				moveTo(getX(), getY() - 1);
-			break;
 
-		default:
+				getWorld()->removeDirt(getX(), getY());
+
+
+			}
 			break;
+		case KEY_PRESS_LEFT:
+			if (getX() >0)
+			{
+				setDirection(left);
+				moveTo(getX() - 1, getY());
+				getWorld()->removeDirt(getX(), getY());
+
+			}
+			break;
+		case KEY_PRESS_RIGHT:
+			if (getX() <60)
+			{
+				setDirection(right);
+				moveTo(getX() + 1, getY());
+				getWorld()->removeDirt(getX(), getY());
+
+			}
+			break;
+		case KEY_PRESS_ESCAPE:
+			setDead();
+			//kill player
+			break;
+		case KEY_PRESS_SPACE:
+		{
+			shootWater(getDirection(), getX(), getY());
+			break;
+		}
+		case 'Z':
+		case 'z':
+		{
+			if (m_sonarCharge <= 0)
+				break;
+			//getWorld()->revealSonar(getX(), getY());
+			m_sonarCharge--;
+		}
+
 		}
 	}
 
@@ -90,4 +120,47 @@ int TunnelMan::getSonar()const
 int TunnelMan::getGold()const
 {
 	return m_goldNuggets;
+}
+void TunnelMan::shootWater(Direction dir, int x, int y)
+{
+	if (getAmmo() <= 0)
+	{
+		return;
+	}
+
+	if (dir == right)
+	{
+		if (x + 4 <= 60 && getWorld()->getContentsOf(x+4,y)==0)
+		{
+			getWorld()->setObject(x + 4, y, TID_WATER_SPURT);
+		}
+	}
+	else if (dir == left)
+	{
+		if (x - 4 >= 0 && getWorld()->getContentsOf(x - 4, y) == 0)
+		{
+			getWorld()->setObject(x - 4, y, TID_WATER_SPURT);
+		}
+	}
+	else if (dir == up)
+	{
+		if (y + 4 <= 60 && getWorld()->getContentsOf(x, y+4) == 0)
+		{
+			getWorld()->setObject(x, y+4, TID_WATER_SPURT);
+		}
+	}
+	else if (dir == down)
+	{
+		if (y - 4 >= 0 && getWorld()->getContentsOf(x, y - 4) == 0)
+		{
+			getWorld()->setObject(x, y - 4, TID_WATER_SPURT);
+		}
+	}
+
+	getWorld()->playSound(SOUND_PLAYER_SQUIRT);
+}
+WaterSquirt::WaterSquirt(int x, int y, StudentWorld * world, Direction dir) :
+	Actor(TID_WATER_SPURT, x, y, world, dir, 1.0, 1)
+{
+
 }
