@@ -44,43 +44,48 @@ void TunnelMan::doSomething()
 		switch (KeyPressed)
 		{
 		case  KEY_PRESS_UP:
-			if (getY() <60)
+
+			if (getY() <60 && getDirection()==up)
+			{
+				moveTo(getX(), getY() + 1);
+				getWorld()->removeDirt(getX(), getY());
+			}
+			else
 			{
 				setDirection(up);
-				moveTo(getX(), getY() + 1);
-
-				getWorld()->removeDirt(getX(), getY());
-
-
 			}
 			break;
 		case KEY_PRESS_DOWN:
-			if (getY() >0)
+			if (getY() >0 && getDirection() == down)
+			{
+				moveTo(getX(), getY() - 1);
+				getWorld()->removeDirt(getX(), getY());
+			}
+			else
 			{
 				setDirection(down);
-				moveTo(getX(), getY() - 1);
-
-				getWorld()->removeDirt(getX(), getY());
-
-
 			}
 			break;
 		case KEY_PRESS_LEFT:
-			if (getX() >0)
+			if (getX() >0 && getDirection() == left)
 			{
-				setDirection(left);
 				moveTo(getX() - 1, getY());
 				getWorld()->removeDirt(getX(), getY());
-
+			}
+			else
+			{
+				setDirection(left);
 			}
 			break;
 		case KEY_PRESS_RIGHT:
-			if (getX() <60)
+			if (getX() <60 && getDirection() == right)
 			{
-				setDirection(right);
 				moveTo(getX() + 1, getY());
 				getWorld()->removeDirt(getX(), getY());
-
+			}
+			else
+			{
+				setDirection(right);
 			}
 			break;
 		case KEY_PRESS_ESCAPE:

@@ -72,32 +72,32 @@ int StudentWorld::move()
 	StudentWorld::textDisplay();
 	m_tunnelman->doSomething();
 
-	vector<Actor*>::iterator i;
-	//Each actor moves.
-	for (i = m_actor.begin(); i != m_actor.end(); i++)
+	if (!m_actor.empty())
 	{
-		if ((*i)->isAlive())
+		vector<Actor*>::iterator i;
+
+
+		for (i = m_actor.begin(); i != m_actor.end(); i++)
 		{
-			(*i)->doSomething();
-			//If TunnelMan dies
-			if (!m_tunnelman->isAlive())
+			if ((*i)->isAlive())
 			{
-				decLives();
-				return GWSTATUS_PLAYER_DIED;
+				(*i)->doSomething();
+				//If tunnelman dies
 			}
 		}
 
-	}
-	//Remove dead objects
-	for (i = m_actor.begin(); i != m_actor.end();)
-	{
-		if (!(*i)->isAlive())
+		//Remove dead objects
+		for (i = m_actor.begin(); i != m_actor.end();)
 		{
-			delete *i;
-			i = m_actor.erase(i);
+			if (!(*i)->isAlive())
+			{
+				delete *i;
+				i = m_actor.erase(i);
+			}
+			else i++;
 		}
-		else i++;
 	}
+
 	if (!m_tunnelman->isAlive())
 	{
 		decLives();
@@ -129,12 +129,15 @@ StudentWorld::~StudentWorld() {
 }
 void StudentWorld::cleanUp() {
 	vector<Actor*>::iterator i;
-	for (i = m_actor.begin(); i != m_actor.end();) {
+	for (i = m_actor.begin(); i != m_actor.end();)
+	{
 		delete *i;
 		i = m_actor.erase(i);
 	}
-	for (int k = 0; k<64; k++) {
-		for (int l = 0; l<60; l++) {
+	for (int k = 0; k<64; k++)
+	{
+		for (int l = 0; l<60; l++)
+		{
 			delete m_field[k][l];
 		}
 	}
@@ -153,9 +156,10 @@ void StudentWorld::removeDirt(int x, int y)
 				delete m_field[i][j];
 				m_field[i][j] = nullptr;
 				grid[i][j] = 0;
+				playSound(SOUND_DIG);
 			}
 		}
-	}
+	} 
 }
 void StudentWorld::setObject(int x, int y, int ID)
 {
