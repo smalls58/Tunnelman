@@ -94,7 +94,7 @@ void TunnelMan::doSomething()
 			break;
 		case KEY_PRESS_SPACE:
 		{
-			shootWater(getDirection(), getX(), getY());
+			getWorld()->shootWater(getX(), getY());
 			break;
 		}
 		case 'Z':
@@ -126,46 +126,70 @@ int TunnelMan::getGold()const
 {
 	return m_goldNuggets;
 }
-void TunnelMan::shootWater(Direction dir, int x, int y)
+void TunnelMan::decrementAmmo()
 {
-	if (getAmmo() <= 0)
+	if (m_ammo > 0)
 	{
-		return;
+		m_ammo--;
 	}
-
-	if (dir == right)
-	{
-		if (x + 4 <= 60 && getWorld()->getContentsOf(x+4,y)==0)
-		{
-			getWorld()->setObject(x + 4, y, TID_WATER_SPURT);
-		}
-	}
-	else if (dir == left)
-	{
-		if (x - 4 >= 0 && getWorld()->getContentsOf(x - 4, y) == 0)
-		{
-			getWorld()->setObject(x - 4, y, TID_WATER_SPURT);
-		}
-	}
-	else if (dir == up)
-	{
-		if (y + 4 <= 60 && getWorld()->getContentsOf(x, y+4) == 0)
-		{
-			getWorld()->setObject(x, y+4, TID_WATER_SPURT);
-		}
-	}
-	else if (dir == down)
-	{
-		if (y - 4 >= 0 && getWorld()->getContentsOf(x, y - 4) == 0)
-		{
-			getWorld()->setObject(x, y - 4, TID_WATER_SPURT);
-		}
-	}
-
-	getWorld()->playSound(SOUND_PLAYER_SQUIRT);
 }
 WaterSquirt::WaterSquirt(int x, int y, StudentWorld * world, Direction dir) :
-	Actor(TID_WATER_SPURT, x, y, world, dir, 1.0, 1)
+	Actor(TID_WATER_SPURT, x, y, world, dir, 1.0, 1),ticksLeft(0)
 {
+
+}
+void WaterSquirt::doSomething()
+{
+	ticksLeft++;
+	int x = getX();
+	int y = getY();
+	if (ticksLeft == 8)
+	{
+		setDead();
+	}
+	else if (getDirection() == right)
+	{
+		if (x + 1 <= 60 && getWorld()->getContentsOf(x + 1, y) == 0)
+		{
+			moveTo(x + 1, y);
+		}
+		else
+		{
+			setDead();
+		}
+	}
+	else if (getDirection() == left)
+	{
+		if (x - 1 >= 0 && getWorld()->getContentsOf(x - 1, y) == 0)
+		{
+			moveTo(x - 1, y);
+		}
+		else
+		{
+			setDead();
+		}
+	}
+	else if (getDirection() == up)
+	{
+		if (y + 1 <= 60 && getWorld()->getContentsOf(x, y + 1) == 0)
+		{
+			moveTo(x, y+1);
+		}
+		else
+		{
+			setDead();
+		}
+	}
+	else if (getDirection() == down)
+	{
+		if (y - 1 >= 0 && getWorld()->getContentsOf(x, y - 1) == 0)
+		{
+			moveTo(x, y-1);
+		}
+		else
+		{
+			setDead();
+		}
+	}
 
 }

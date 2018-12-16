@@ -29,16 +29,18 @@ public:
 
 	int getContentsOf(int x, int y);
 
-	void setObject(int x, int y, int ID);
+	//void setObject(int x, int y, int ID);
 
 	void removeDirt(int a, int b);
+	
+	void shootWater(int x, int y);
 
 	~StudentWorld();
 
 private:
 	std::vector<Actor*> m_actor;
 	TunnelMan* m_tunnelman;
-	Actor* m_field[64][64];
+	Earth* m_field[64][64];
 	int grid[64][64];
 	int barrels_collected;
 	int ticks_elapsed;

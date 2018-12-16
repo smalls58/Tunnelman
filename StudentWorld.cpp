@@ -124,7 +124,7 @@ StudentWorld::~StudentWorld() {
 			delete m_field[k][l];
 		}
 	}
-	delete[] grid;
+
 	delete m_tunnelman;
 }
 void StudentWorld::cleanUp() {
@@ -141,7 +141,7 @@ void StudentWorld::cleanUp() {
 			delete m_field[k][l];
 		}
 	}
-	delete[] grid;
+
 	delete m_tunnelman;
 }
 void StudentWorld::removeDirt(int x, int y)
@@ -161,39 +161,47 @@ void StudentWorld::removeDirt(int x, int y)
 		}
 	} 
 }
-void StudentWorld::setObject(int x, int y, int ID)
+void StudentWorld::shootWater(int x, int y)
 {
-	switch (ID)
+	if (m_tunnelman->getAmmo() <= 0)
 	{
-	case TID_PLAYER:
-		m_field[x][y] = m_tunnelman;
-		break;
-	case TID_PROTESTER:
-
-		break;
-	case TID_HARD_CORE_PROTESTER:
-
-		break;
-	case TID_WATER_SPURT:
-		m_field[x][y] = new WaterSquirt(x, y, this,m_tunnelman->getDirection());
-		break;
-	case TID_BOULDER:
-
-		break;
-	case TID_BARREL:
-
-		break;
-	case TID_EARTH:
-		m_field[x][y] = new Earth(x, y, this);
-		break;
-	case TID_GOLD:
-
-		break;
-	case TID_SONAR:
-
-		break;
-	case TID_WATER_POOL:
-
-		break;
+		return;
 	}
+	enum GraphObject::Direction dir = m_tunnelman->getDirection();
+	WaterSquirt *temp;
+	if (dir == 4)
+	{
+		if (x + 1 <= 60 && this->getContentsOf(x + 1, y) == 0)
+		{
+			temp = new WaterSquirt(x+1, y, this, dir);
+			m_actor.push_back(temp);
+		}
+	}
+	else if (dir == 3)
+	{
+		if (x - 1 >= 0 && this->getContentsOf(x - 1, y) == 0)
+		{
+			temp = new WaterSquirt(x - 1, y, this, dir);
+			m_actor.push_back(temp);
+		}
+	}
+	else if (dir == 1)
+	{
+		if (y + 1 <= 60 && this->getContentsOf(x, y + 1) == 0)
+		{
+			temp = new WaterSquirt(x, y+1, this, dir);
+			m_actor.push_back(temp);
+		}
+	}
+	else if (dir == 2)
+	{
+		if (y - 1 >= 0 && this->getContentsOf(x, y - 1) == 0)
+		{
+			temp = new WaterSquirt(x, y - 1, this, dir);
+			m_actor.push_back(temp);
+		}
+	}
+
+	this->playSound(SOUND_PLAYER_SQUIRT);
+	m_tunnelman->decrementAmmo();
 }
