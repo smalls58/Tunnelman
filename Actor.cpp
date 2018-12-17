@@ -193,3 +193,28 @@ void WaterSquirt::doSomething()
 	}
 
 }
+RegularProtester::RegularProtester(int x, int y, StudentWorld* world):
+	Actor(TID_PROTESTER, x, y, world, left, 1.0, 1),m_health(5),m_leaveField(false), ticksToWaitBetweenMoves(std::max(0, int(3-getWorld()->getLevel() / 4)))
+{
+
+}
+void RegularProtester::doSomething()
+{
+	if (!isAlive())
+	{
+		return;
+	}
+
+	if (m_health == 0)
+	{
+		m_leaveField = true;
+		if (getX() == 60 && getY() == 60)
+		{
+			setDead();
+		}
+	}
+}
+int RegularProtester::numSquaresToMoveInCurrentDirection()const
+{
+	return (int)(rand() % 53 + 8);
+}

@@ -4,6 +4,7 @@
 #include "GameWorld.h"
 #include "GameConstants.h"
 #include "Actor.h"
+#include <queue>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -29,11 +30,11 @@ public:
 
 	int getContentsOf(int x, int y);
 
-	//void setObject(int x, int y, int ID);
-
 	void removeDirt(int a, int b);
 	
 	void shootWater(int x, int y);
+
+	//std::queue<int> computeShortestPath(int startX, int startY, int endX, int endY);
 
 	~StudentWorld();
 

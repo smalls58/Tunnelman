@@ -205,3 +205,73 @@ void StudentWorld::shootWater(int x, int y)
 	this->playSound(SOUND_PLAYER_SQUIRT);
 	m_tunnelman->decrementAmmo();
 }
+/*std::queue<int> StudentWorld::computeShortestPath(int startX, int startY, int endX, int endY)
+{
+	std::queue<int> listOfDirections;
+	int visitedGrid[61][61];
+	for (int i = 0; i < 61; i++)
+	{
+		for (int j = 0; j < 61; j++)
+		{
+			visitedGrid[i][j] = grid[i][j];
+		}
+	}
+	//4:right,3:left,2:down,1:up,0:none
+
+	struct node
+	{
+		node(int X, int Y)
+		{
+			x = X;
+			y = Y;
+			found = false;
+		}
+		int dir;
+		int x;
+		int y;
+		bool found;
+		node* up;
+		node* down;
+		node* left;
+		node* right;
+	};
+
+	node* root = new node(startX,startY);
+	bool done = false;
+	node* current = root;
+
+	while (!done)
+	{
+		if (current->x == endX && current->y == endY)
+		{
+			done = true;
+		}
+		else if (visitedGrid[current->x][current->y + 1]==0 && current->y+1<=60)
+		{
+			current->up = new node(current->x, current->y + 1);
+			current->dir = 1;
+			visitedGrid[current->x][current->y + 1] = 1;
+		}
+		else if (visitedGrid[current->x][current->y - 1] == 0 && current->y - 1>=0)
+		{
+			current->down = new node(current->x, current->y - 1);
+			current->dir = 2;
+			visitedGrid[current->x][current->y - 1] = 1;
+		}
+		else if (visitedGrid[current->x-1][current->y] == 0 && current->y - 1>=0)
+		{
+			current->left = new node(current->x-1, current->y);
+			current->dir = 3;
+			visitedGrid[current->x - 1][current->y] = 1;
+		}
+		else if (visitedGrid[current->x+1][current->y] == 0 && current->x + 1<=60)
+		{
+			current->right = new node(current->x+1, current->y);
+			current->dir = 4;
+			visitedGrid[current->x + 1][current->y] = 1;
+		}
+	}
+
+	
+
+}*/

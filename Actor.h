@@ -2,6 +2,7 @@
 #define ACTOR_H_
 
 #include "GraphObject.h"
+#include <algorithm> 
 class StudentWorld;
 
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
@@ -60,4 +61,16 @@ public:
 	virtual ~WaterSquirt() {}
 	void virtual doSomething();
 };
+class RegularProtester : public Actor {
+private:
+	int m_health;
+	bool m_leaveField;
+	int ticksToWaitBetweenMoves;
+public:
+	RegularProtester(int x, int y, StudentWorld* world);
+	virtual ~RegularProtester() {}
+	void virtual doSomething();
+	int numSquaresToMoveInCurrentDirection()const;
+};
+
 #endif // ACTOR_H_
