@@ -62,7 +62,13 @@ public:
 	virtual ~WaterSquirt() {}
 	void virtual doSomething();
 };
-class WaterPool : public Actor {
+class Goodie : public Actor {
+public:
+	Goodie(int imageID, int x, int y, StudentWorld* world, Direction dir = right, double size = 1.0, unsigned int depth = 0);
+	virtual ~Goodie() {}
+	void virtual doSomething(){}
+};
+class WaterPool : public Goodie {
 private:
 	int m_ticksLeft;
 public:

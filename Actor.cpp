@@ -205,8 +205,13 @@ void WaterSquirt::doSomething()
 	}
 
 }
+Goodie::Goodie(int imageID, int x, int y, StudentWorld * world, Direction dir, double size, unsigned int depth) :
+	Actor(imageID, x, y, world, dir, size, depth)
+{
+
+}
 WaterPool::WaterPool(int x, int y, StudentWorld * world):
-	Actor(TID_EARTH, x, y, world, right, 1.0, 2),m_ticksLeft(std::max(100, int(300 - 10 * getWorld()->getLevel())))
+	Goodie(TID_WATER_POOL, x, y, world, right, 1.0, 2),m_ticksLeft(std::max(100, int(300 - 10 * getWorld()->getLevel())))
 {
 
 }
