@@ -30,6 +30,8 @@ public:
 
 	int getContentsOf(int x, int y);
 
+	void setGridContent(int x, int y, int ID);
+
 	void removeDirt(int a, int b);
 	
 	void shootWater(int x, int y);

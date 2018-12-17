@@ -48,6 +48,8 @@ void TunnelMan::doSomething()
 			if (getY() <60 && getDirection()==up)
 			{
 				moveTo(getX(), getY() + 1);
+				getWorld()->setGridContent(getX(), getY(), 10);
+				getWorld()->setGridContent(getX(), getY()+1, TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -59,6 +61,8 @@ void TunnelMan::doSomething()
 			if (getY() >0 && getDirection() == down)
 			{
 				moveTo(getX(), getY() - 1);
+				getWorld()->setGridContent(getX(), getY(), 10);
+				getWorld()->setGridContent(getX(), getY()-1, TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -70,6 +74,8 @@ void TunnelMan::doSomething()
 			if (getX() >0 && getDirection() == left)
 			{
 				moveTo(getX() - 1, getY());
+				getWorld()->setGridContent(getX(), getY(), 10);
+				getWorld()->setGridContent(getX()-1, getY(), TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -81,6 +87,8 @@ void TunnelMan::doSomething()
 			if (getX() <60 && getDirection() == right)
 			{
 				moveTo(getX() + 1, getY());
+				getWorld()->setGridContent(getX(), getY(), 10);
+				getWorld()->setGridContent(getX()+1, getY(), TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -149,7 +157,7 @@ void WaterSquirt::doSomething()
 	}
 	else if (getDirection() == right)
 	{
-		if (x + 1 <= 60 && getWorld()->getContentsOf(x + 1, y) == 0)
+		if (x + 1 <= 60 && getWorld()->getContentsOf(x + 1, y) == 10)
 		{
 			moveTo(x + 1, y);
 		}
@@ -160,7 +168,7 @@ void WaterSquirt::doSomething()
 	}
 	else if (getDirection() == left)
 	{
-		if (x - 1 >= 0 && getWorld()->getContentsOf(x - 1, y) == 0)
+		if (x - 1 >= 0 && getWorld()->getContentsOf(x - 1, y) == 10)
 		{
 			moveTo(x - 1, y);
 		}
@@ -171,7 +179,7 @@ void WaterSquirt::doSomething()
 	}
 	else if (getDirection() == up)
 	{
-		if (y + 1 <= 60 && getWorld()->getContentsOf(x, y + 1) == 0)
+		if (y + 1 <= 60 && getWorld()->getContentsOf(x, y + 1) == 10)
 		{
 			moveTo(x, y+1);
 		}
@@ -182,7 +190,7 @@ void WaterSquirt::doSomething()
 	}
 	else if (getDirection() == down)
 	{
-		if (y - 1 >= 0 && getWorld()->getContentsOf(x, y - 1) == 0)
+		if (y - 1 >= 0 && getWorld()->getContentsOf(x, y - 1) == 10)
 		{
 			moveTo(x, y-1);
 		}

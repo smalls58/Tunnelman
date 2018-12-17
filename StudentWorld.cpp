@@ -14,7 +14,7 @@ int StudentWorld::init()
 	{
 		for (int j = 0; j<61; j++)
 		{
-			grid[i][j] = 0;
+			grid[i][j] = 10;
 		}
 	}
 	barrels_collected = 0;
@@ -32,7 +32,7 @@ int StudentWorld::init()
 			}
 			else {
 				m_field[i][j] = new Earth(i, j,this);
-				grid[i][j] = 1;
+				grid[i][j] = TID_EARTH;
 			}
 		}
 	}
@@ -144,6 +144,10 @@ void StudentWorld::cleanUp() {
 
 	delete m_tunnelman;
 }
+void StudentWorld::setGridContent(int x, int y, int ID)
+{
+	grid[x][y] = ID;
+}
 void StudentWorld::removeDirt(int x, int y)
 {
 
@@ -155,7 +159,7 @@ void StudentWorld::removeDirt(int x, int y)
 			{
 				delete m_field[i][j];
 				m_field[i][j] = nullptr;
-				grid[i][j] = 0;
+				grid[i][j] = 10;
 				playSound(SOUND_DIG);
 			}
 		}
@@ -171,7 +175,7 @@ void StudentWorld::shootWater(int x, int y)
 	WaterSquirt *temp;
 	if (dir == 4)
 	{
-		if (x + 1 <= 60 && this->getContentsOf(x + 1, y) == 0)
+		if (x + 1 <= 60 && this->getContentsOf(x + 1, y) == 10)
 		{
 			temp = new WaterSquirt(x+1, y, this, dir);
 			m_actor.push_back(temp);
@@ -179,7 +183,7 @@ void StudentWorld::shootWater(int x, int y)
 	}
 	else if (dir == 3)
 	{
-		if (x - 1 >= 0 && this->getContentsOf(x - 1, y) == 0)
+		if (x - 1 >= 0 && this->getContentsOf(x - 1, y) == 10)
 		{
 			temp = new WaterSquirt(x - 1, y, this, dir);
 			m_actor.push_back(temp);
@@ -187,7 +191,7 @@ void StudentWorld::shootWater(int x, int y)
 	}
 	else if (dir == 1)
 	{
-		if (y + 1 <= 60 && this->getContentsOf(x, y + 1) == 0)
+		if (y + 1 <= 60 && this->getContentsOf(x, y + 1) == 10)
 		{
 			temp = new WaterSquirt(x, y+1, this, dir);
 			m_actor.push_back(temp);
@@ -195,7 +199,7 @@ void StudentWorld::shootWater(int x, int y)
 	}
 	else if (dir == 2)
 	{
-		if (y - 1 >= 0 && this->getContentsOf(x, y - 1) == 0)
+		if (y - 1 >= 0 && this->getContentsOf(x, y - 1) == 10)
 		{
 			temp = new WaterSquirt(x, y - 1, this, dir);
 			m_actor.push_back(temp);
