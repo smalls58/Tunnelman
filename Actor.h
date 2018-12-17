@@ -52,13 +52,22 @@ public:
 	int getSonar()const;
 	int getGold()const;
 	void decrementAmmo();
+	void incrementAmmo();
 };
 class WaterSquirt : public Actor {
 private:
-	int ticksLeft;
+	int m_ticksLeft;
 public:
 	WaterSquirt(int x, int y, StudentWorld * world, Direction dir);
 	virtual ~WaterSquirt() {}
+	void virtual doSomething();
+};
+class WaterPool : public Actor {
+private:
+	int m_ticksLeft;
+public:
+	WaterPool(int x, int y, StudentWorld * world);
+	virtual ~WaterPool() {}
 	void virtual doSomething();
 };
 class RegularProtester : public Actor {

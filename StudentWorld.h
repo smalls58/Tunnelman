@@ -7,6 +7,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <cmath>
 #include <sstream>
 #include <iomanip>
 
@@ -35,6 +36,8 @@ public:
 	void removeDirt(int a, int b);
 	
 	void shootWater(int x, int y);
+
+	TunnelMan* getTunnelMan()const;
 
 	//std::queue<int> computeShortestPath(int startX, int startY, int endX, int endY);
 

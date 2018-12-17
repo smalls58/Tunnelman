@@ -209,6 +209,10 @@ void StudentWorld::shootWater(int x, int y)
 	this->playSound(SOUND_PLAYER_SQUIRT);
 	m_tunnelman->decrementAmmo();
 }
+TunnelMan* StudentWorld::getTunnelMan()const
+{
+	return m_tunnelman;
+}
 /*std::queue<int> StudentWorld::computeShortestPath(int startX, int startY, int endX, int endY)
 {
 	std::queue<int> listOfDirections;

@@ -48,8 +48,8 @@ void TunnelMan::doSomething()
 			if (getY() <60 && getDirection()==up)
 			{
 				moveTo(getX(), getY() + 1);
-				getWorld()->setGridContent(getX(), getY(), 10);
-				getWorld()->setGridContent(getX(), getY()+1, TID_PLAYER);
+				//getWorld()->setGridContent(getX(), getY(), 10);
+				//getWorld()->setGridContent(getX(), getY()+1, TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -61,8 +61,8 @@ void TunnelMan::doSomething()
 			if (getY() >0 && getDirection() == down)
 			{
 				moveTo(getX(), getY() - 1);
-				getWorld()->setGridContent(getX(), getY(), 10);
-				getWorld()->setGridContent(getX(), getY()-1, TID_PLAYER);
+				//getWorld()->setGridContent(getX(), getY(), 10);
+				//getWorld()->setGridContent(getX(), getY()-1, TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -74,8 +74,8 @@ void TunnelMan::doSomething()
 			if (getX() >0 && getDirection() == left)
 			{
 				moveTo(getX() - 1, getY());
-				getWorld()->setGridContent(getX(), getY(), 10);
-				getWorld()->setGridContent(getX()-1, getY(), TID_PLAYER);
+				//getWorld()->setGridContent(getX(), getY(), 10);
+				//getWorld()->setGridContent(getX()-1, getY(), TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -87,8 +87,8 @@ void TunnelMan::doSomething()
 			if (getX() <60 && getDirection() == right)
 			{
 				moveTo(getX() + 1, getY());
-				getWorld()->setGridContent(getX(), getY(), 10);
-				getWorld()->setGridContent(getX()+1, getY(), TID_PLAYER);
+				//getWorld()->setGridContent(getX(), getY(), 10);
+				//getWorld()->setGridContent(getX()+1, getY(), TID_PLAYER);
 				getWorld()->removeDirt(getX(), getY());
 			}
 			else
@@ -141,17 +141,21 @@ void TunnelMan::decrementAmmo()
 		m_ammo--;
 	}
 }
+void TunnelMan::incrementAmmo()
+{
+	m_ammo += 5;
+}
 WaterSquirt::WaterSquirt(int x, int y, StudentWorld * world, Direction dir) :
-	Actor(TID_WATER_SPURT, x, y, world, dir, 1.0, 1),ticksLeft(0)
+	Actor(TID_WATER_SPURT, x, y, world, dir, 1.0, 1),m_ticksLeft(0)
 {
 
 }
 void WaterSquirt::doSomething()
 {
-	ticksLeft++;
+	m_ticksLeft++;
 	int x = getX();
 	int y = getY();
-	if (ticksLeft == 8)
+	if (m_ticksLeft == 8)
 	{
 		setDead();
 	}
@@ -201,8 +205,40 @@ void WaterSquirt::doSomething()
 	}
 
 }
+WaterPool::WaterPool(int x, int y, StudentWorld * world):
+	Actor(TID_EARTH, x, y, world, right, 1.0, 2),m_ticksLeft(std::max(100, int(300 - 10 * getWorld()->getLevel())))
+{
+
+}
+void WaterPool::doSomething()
+{
+	if (!isAlive())
+	{
+		return;
+	}
+
+	m_ticksLeft--;
+	if (m_ticksLeft == 0)
+	{
+		setDead();
+	}
+
+	int tunnelManX = getWorld()->getTunnelMan()->getX();
+	int tunnelManY = getWorld()->getTunnelMan()->getY();
+	double xSide = getX() - tunnelManX;
+	double ySide = getY() - tunnelManY;
+	double radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+	if (radius <= 3)
+	{
+		setDead();
+		getWorld()->playSound(SOUND_GOT_GOODIE);
+		getWorld()->getTunnelMan()->incrementAmmo();
+		getWorld()->increaseScore(500);
+	}
+}
 RegularProtester::RegularProtester(int x, int y, StudentWorld* world):
-	Actor(TID_PROTESTER, x, y, world, left, 1.0, 1),m_health(5),m_leaveField(false), ticksToWaitBetweenMoves(std::max(0, int(3-getWorld()->getLevel() / 4)))
+	Actor(TID_PROTESTER, x, y, world, left, 1.0, 1),m_health(5),m_leaveField(false),
+	ticksToWaitBetweenMoves(std::max(0, int(3-getWorld()->getLevel() / 4)))
 {
 
 }
