@@ -9,7 +9,6 @@ GameWorld* createStudentWorld(string assetDir)
 int StudentWorld::init()
 {
 	ticks_elapsed = 0;
-	barrels_collected = 0;
 	for (int i = 0; i<64; i++)
 	{
 		for (int j = 0; j<61; j++)
@@ -17,7 +16,6 @@ int StudentWorld::init()
 			grid[i][j] = 10;
 		}
 	}
-	barrels_collected = 0;
 	m_tunnelman = new TunnelMan(this);
 
 	//Initializing Earth
@@ -35,6 +33,44 @@ int StudentWorld::init()
 				grid[i][j] = TID_EARTH;
 			}
 		}
+	}
+	//boulders
+	int B = min(int(getLevel() / 2 + 2), 9);
+
+	//gold nuggets
+	int G = max(int(5 - getLevel() / 2), 2);
+
+	//barrels of oil
+	int L = min(int(2 + getLevel()), 21);
+	m_barrelsNeeded = L;
+
+	for (int i = 0; i < B; i++)
+	{
+		int x;
+		int y;
+		makeCoordinate(x, y);
+		for (int j = x; j < x + 4; j++)
+		{
+			for (int k = y; k < y + 4; k++)
+			{
+				if (m_field[j][k] != nullptr)
+				{
+					delete m_field[j][k];
+					m_field[j][k] = nullptr;
+				}
+			}
+		}
+		Boulder* boulder = new Boulder(x, y, this);
+		m_actor.push_back(boulder);
+	}
+
+	for (int i = 0; i < L; i++)
+	{
+		int x;
+		int y;
+		makeCoordinate(x, y);
+		BarrelOfOil* barrel = new BarrelOfOil(x, y, this);
+		m_actor.push_back(barrel);
 	}
 
 	return GWSTATUS_CONTINUE_GAME;
@@ -70,6 +106,13 @@ int StudentWorld::move()
 	// Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
 	ticks_elapsed++;
 	StudentWorld::textDisplay();
+	if (m_barrelsNeeded == 0)
+	{
+		advanceToNextLevel();
+		playSound(SOUND_FINISHED_LEVEL);
+		return GWSTATUS_FINISHED_LEVEL;
+	}
+
 	m_tunnelman->doSomething();
 
 	if (!m_actor.empty())
@@ -100,6 +143,7 @@ int StudentWorld::move()
 
 	if (!m_tunnelman->isAlive())
 	{
+		playSound(SOUND_PLAYER_GIVE_UP);
 		decLives();
 		return GWSTATUS_PLAYER_DIED;
 	}
@@ -212,6 +256,80 @@ void StudentWorld::shootWater(int x, int y)
 TunnelMan* StudentWorld::getTunnelMan()const
 {
 	return m_tunnelman;
+}
+std::vector<Protester*> StudentWorld::getProtestorVec()
+{
+	return m_protestorVec;
+}
+void StudentWorld::decrementBarrelsNeeded()
+{
+	if (m_barrelsNeeded > 0)
+	{
+		m_barrelsNeeded--;
+	}
+}
+int StudentWorld::getRandomNum(int max)const
+{
+	return int(rand() % max);
+}
+void StudentWorld::makeCoordinate(int &x, int&y)
+{
+	int actorX;
+	int actorY;
+	double xSide;
+	double ySide;
+	double radius;
+	bool done = false;
+
+	while (!done) 
+	{
+		x = getRandomNum(59) + 1;
+		y = getRandomNum(59) + 1;
+		if (m_actor.size() == 0)
+		{
+			done = true;
+		}
+		for (size_t i = 0; i < m_actor.size(); i++)
+		{
+			actorX = m_actor[i]->getX();
+			actorY = m_actor[i]->getY();
+			xSide = x - actorX;
+			ySide = y - actorY;
+			radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+			if (radius <= 4.0)
+			{
+				done = false;
+				break;
+			}
+			done = true;
+		}
+	}
+}
+bool StudentWorld::isBoulder(int x, int y)const
+{
+	int boulderX;
+	int boulderY;
+	double xSide;
+	double ySide;
+	double radius=4;
+	for (size_t i = 0; i < m_actor.size(); i++)
+	{
+		if (m_actor[i]->getID() == TID_BOULDER)
+		{
+
+			boulderX = m_actor[i]->getX();
+			boulderY = m_actor[i]->getY();
+			xSide = x - boulderX;
+			ySide = y - boulderY;
+			radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+
+			if (radius <= 3)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 /*std::queue<int> StudentWorld::computeShortestPath(int startX, int startY, int endX, int endY)
 {

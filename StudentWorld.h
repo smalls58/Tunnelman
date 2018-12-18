@@ -12,6 +12,7 @@
 #include <iomanip>
 
 // Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
+const int TID_FREESPACE = 10;
 
 class StudentWorld : public GameWorld
 {
@@ -39,16 +40,27 @@ public:
 
 	TunnelMan* getTunnelMan()const;
 
+	std::vector<Protester*> getProtestorVec();
+
+	void decrementBarrelsNeeded();
+
+	int getRandomNum(int max)const;
+
+	void makeCoordinate(int &x, int&y);
+
+	bool isBoulder(int x, int y)const;
+
 	//std::queue<int> computeShortestPath(int startX, int startY, int endX, int endY);
 
 	~StudentWorld();
 
 private:
 	std::vector<Actor*> m_actor;
+	std::vector<Protester*> m_protestorVec;
 	TunnelMan* m_tunnelman;
 	Earth* m_field[64][64];
 	int grid[64][64];
-	int barrels_collected;
+	int m_barrelsNeeded;
 	int ticks_elapsed;
 };
 

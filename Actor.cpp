@@ -14,13 +14,90 @@ Earth::Earth(int x, int y, StudentWorld* world):
 {
 
 }
-
-Boulder::Boulder(int x, int y, StudentWorld* world):
-	Actor(TID_BOULDER,x,y,world,down,1.0,1)
+Boulder::Boulder(int x, int y, StudentWorld* world) :
+	Actor(TID_BOULDER, x, y, world, down, 1.0, 1),m_fallState(0)
 {
 
 }
 
+void Boulder::doSomething()
+{
+	if (!isAlive())
+	{
+		return;
+	}
+
+	//0=stable, 1=waiting, 2=falling 
+	if (dirtBelow() && m_fallState==0)
+	{
+		return;
+	}
+	else if (m_fallState == 0)
+	{
+		m_fallState = 1;
+	}
+	else if (m_fallState == 1)
+	{
+		tickTime++;
+		if (tickTime >= 30)
+		{
+			getWorld()->playSound(SOUND_FALLING_ROCK);
+			m_fallState = 2;
+		}
+	}
+	else if (m_fallState == 2)
+	{
+		int protesterX;
+		int protesterY;
+		int tunnelManX=getWorld()->getTunnelMan()->getX();
+		int tunnelManY=getWorld()->getTunnelMan()->getY();
+		double xSide;
+		double ySide;
+		double radius;
+		for (size_t i = 0; i < getWorld()->getProtestorVec().size(); i++)
+		{
+			protesterX = getWorld()->getProtestorVec().at(i)->getX();
+			protesterY = getWorld()->getProtestorVec().at(i)->getY();
+			xSide = getX() - protesterX;
+			ySide = getY() - protesterY;
+			radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+
+			if (radius <= 3)
+			{
+				getWorld()->getProtestorVec().at(i)->setAnnoyance(100);
+			}
+		}
+		xSide = getX() - tunnelManX;
+		ySide = getY() - tunnelManY;
+		radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+		if (radius <= 3)
+		{
+			getWorld()->getTunnelMan()->setDead();
+		}
+
+		if (getY() == 0 || getWorld()->getContentsOf(getX(), getY() - 1) == TID_EARTH || getWorld()->isBoulder(getX(),getY()-4))
+		{
+			setDead();
+		}
+		else
+		{
+			moveTo(getX(), getY() - 1);
+		}
+	}
+
+}
+bool Boulder::dirtBelow()
+{
+	for (int x = getX(); x<getX() + 4; x++)
+	{
+		if (getWorld()->getContentsOf(x, getY() - 1) == TID_EARTH)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 TunnelMan::TunnelMan(StudentWorld* world):
 	Actor(TID_PLAYER,30,60,world),m_health(10),m_ammo(5),m_sonarCharge(1),m_goldNuggets(0)
 {
@@ -45,7 +122,7 @@ void TunnelMan::doSomething()
 		{
 		case  KEY_PRESS_UP:
 
-			if (getY() <60 && getDirection()==up)
+			if (getY() <60 && getDirection()==up && !getWorld()->isBoulder(getX(),getY()+1))
 			{
 				moveTo(getX(), getY() + 1);
 				//getWorld()->setGridContent(getX(), getY(), 10);
@@ -58,7 +135,7 @@ void TunnelMan::doSomething()
 			}
 			break;
 		case KEY_PRESS_DOWN:
-			if (getY() >0 && getDirection() == down)
+			if (getY() >0 && getDirection() == down && !getWorld()->isBoulder(getX(), getY() - 1))
 			{
 				moveTo(getX(), getY() - 1);
 				//getWorld()->setGridContent(getX(), getY(), 10);
@@ -71,7 +148,7 @@ void TunnelMan::doSomething()
 			}
 			break;
 		case KEY_PRESS_LEFT:
-			if (getX() >0 && getDirection() == left)
+			if (getX() >0 && getDirection() == left && !getWorld()->isBoulder(getX()-1, getY()))
 			{
 				moveTo(getX() - 1, getY());
 				//getWorld()->setGridContent(getX(), getY(), 10);
@@ -84,7 +161,7 @@ void TunnelMan::doSomething()
 			}
 			break;
 		case KEY_PRESS_RIGHT:
-			if (getX() <60 && getDirection() == right)
+			if (getX() <60 && getDirection() == right && !getWorld()->isBoulder(getX()+1, getY()))
 			{
 				moveTo(getX() + 1, getY());
 				//getWorld()->setGridContent(getX(), getY(), 10);
@@ -144,6 +221,10 @@ void TunnelMan::decrementAmmo()
 void TunnelMan::incrementAmmo()
 {
 	m_ammo += 5;
+}
+void TunnelMan::incrementSonar()
+{
+	m_sonarCharge++;
 }
 WaterSquirt::WaterSquirt(int x, int y, StudentWorld * world, Direction dir) :
 	Actor(TID_WATER_SPURT, x, y, world, dir, 1.0, 1),m_ticksLeft(0)
@@ -211,7 +292,7 @@ Goodie::Goodie(int imageID, int x, int y, StudentWorld * world, Direction dir, d
 
 }
 WaterPool::WaterPool(int x, int y, StudentWorld * world):
-	Goodie(TID_WATER_POOL, x, y, world, right, 1.0, 2),m_ticksLeft(std::max(100, int(300 - 10 * getWorld()->getLevel())))
+	Goodie(TID_WATER_POOL, x, y, world, right, 1.0, 2),m_ticksLeft(std::max(100, int(300 - 10 * world->getLevel())))
 {
 
 }
@@ -241,9 +322,93 @@ void WaterPool::doSomething()
 		getWorld()->increaseScore(500);
 	}
 }
+BarrelOfOil::BarrelOfOil(int x, int y, StudentWorld * world):
+	Goodie(TID_BARREL, x, y, world, right, 1.0, 2)
+{
+	setVisible(false);
+}
+void BarrelOfOil::doSomething()
+{
+	if (!isAlive())
+	{
+		return;
+	}
+
+	int tunnelManX = getWorld()->getTunnelMan()->getX();
+	int tunnelManY = getWorld()->getTunnelMan()->getY();
+	double xSide = getX() - tunnelManX;
+	double ySide = getY() - tunnelManY;
+	double radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+
+	if (!isVisible() && radius <= 4)
+	{
+		setVisible(true);
+		return;
+	}
+
+	if (radius <= 3)
+	{
+		setDead();
+		getWorld()->playSound(SOUND_FOUND_OIL);
+		getWorld()->increaseScore(1000);
+		getWorld()->decrementBarrelsNeeded();
+	}
+}
+GoldNugget::GoldNugget(int x, int y, StudentWorld *world) :
+	Goodie(TID_GOLD, x, y, world, right, 1.0, 2)
+{
+
+}
+void GoldNugget::doSomething()
+{
+
+}
+SonarKit::SonarKit(int x, int y, StudentWorld * world) :
+	Goodie(TID_SONAR,x,y,world,right,1.0,2),m_ticksLeft(std::max(100, int(300 - 10 * world->getLevel())))
+{
+
+}
+void SonarKit::doSomething()
+{
+	if (!isAlive())
+	{
+		return;
+	}
+	m_ticksLeft--;
+	if (m_ticksLeft <= 0)
+	{
+		setDead();
+	}
+
+	int tunnelManX = getWorld()->getTunnelMan()->getX();
+	int tunnelManY = getWorld()->getTunnelMan()->getY();
+	double xSide = getX() - tunnelManX;
+	double ySide = getY() - tunnelManY;
+	double radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+
+	if (radius <= 3)
+	{
+		setDead();
+		getWorld()->playSound(SOUND_GOT_GOODIE);
+		getWorld()->increaseScore(75);
+	}
+}
+Protester::Protester(int imageID, int x, int y, StudentWorld* world, int hitPoints) :
+	Actor(imageID, x, y, world, left, 1.0, 0),m_health(hitPoints),m_leaveField(false),
+	m_ticksToWaitBetweenMoves(std::max(0, int(3 - world->getLevel() / 4))),m_annoyance(0)
+{
+
+}
+int Protester::numSquaresToMoveInCurrentDirection()const
+{
+	return (int)(rand() % 53 + 8);
+}
+void Protester::setAnnoyance(int annoy)
+{
+	m_annoyance = annoy;
+}
 RegularProtester::RegularProtester(int x, int y, StudentWorld* world):
-	Actor(TID_PROTESTER, x, y, world, left, 1.0, 1),m_health(5),m_leaveField(false),
-	ticksToWaitBetweenMoves(std::max(0, int(3-getWorld()->getLevel() / 4)))
+	Protester(TID_PROTESTER, x, y, world, 5)
 {
 
 }
@@ -262,8 +427,4 @@ void RegularProtester::doSomething()
 			setDead();
 		}
 	}
-}
-int RegularProtester::numSquaresToMoveInCurrentDirection()const
-{
-	return (int)(rand() % 53 + 8);
 }

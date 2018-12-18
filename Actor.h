@@ -30,10 +30,15 @@ public:
 
 class Boulder : public Actor
 {
+private:
+	int tickTime;
+	//0=stable, 1=waiting, 2=falling 
+	int m_fallState;
 public:
 	Boulder(int x, int y, StudentWorld* world);
 	virtual ~Boulder() {}
-	void virtual doSomething() {}
+	void virtual doSomething();
+	bool dirtBelow();
 };
 
 class TunnelMan : public Actor
@@ -53,6 +58,7 @@ public:
 	int getGold()const;
 	void decrementAmmo();
 	void incrementAmmo();
+	void incrementSonar();
 };
 class WaterSquirt : public Actor {
 private:
@@ -76,16 +82,48 @@ public:
 	virtual ~WaterPool() {}
 	void virtual doSomething();
 };
-class RegularProtester : public Actor {
+class BarrelOfOil : public Goodie {
+public:
+	BarrelOfOil(int x, int y, StudentWorld * world);
+	virtual ~BarrelOfOil() {}
+	void virtual doSomething();
+};
+class GoldNugget : public Goodie
+{
+public:
+	GoldNugget(int x, int y, StudentWorld * world);
+	virtual ~GoldNugget() {}
+	void virtual doSomething();
+};
+class SonarKit : public Goodie {
+private:
+	int m_ticksLeft;
+public:
+	SonarKit(int x, int y, StudentWorld * world);
+	virtual ~SonarKit() {}
+	void virtual doSomething();
+};
+class Protester : public Actor {
 private:
 	int m_health;
 	bool m_leaveField;
-	int ticksToWaitBetweenMoves;
+	int m_ticksToWaitBetweenMoves;
+	int m_annoyance;
+public:
+	Protester(int imageID, int x, int y, StudentWorld* world, int hitPoints);
+	virtual ~Protester() {}
+	void virtual doSomething() {}
+	int numSquaresToMoveInCurrentDirection()const;
+	void setAnnoyance(int annoy);
+};
+class RegularProtester : public Protester {
+private:
+	int m_health;
+	bool m_leaveField;
 public:
 	RegularProtester(int x, int y, StudentWorld* world);
 	virtual ~RegularProtester() {}
 	void virtual doSomething();
-	int numSquaresToMoveInCurrentDirection()const;
 };
 
 #endif // ACTOR_H_
