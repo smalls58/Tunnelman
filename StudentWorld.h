@@ -50,6 +50,12 @@ public:
 
 	bool isBoulder(int x, int y)const;
 
+	void revealSonar(int x, int y);
+
+	int getTicks()const;
+
+	std::string shortestPath(int startX, int startY, int endX, int endY)const;
+
 	//std::queue<int> computeShortestPath(int startX, int startY, int endX, int endY);
 
 	~StudentWorld();

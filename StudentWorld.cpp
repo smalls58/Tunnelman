@@ -64,6 +64,15 @@ int StudentWorld::init()
 		m_actor.push_back(boulder);
 	}
 
+	for (int i = 0; i < G; i++)
+	{
+		int x;
+		int y;
+		makeCoordinate(x, y);
+		GoldNugget* gold = new GoldNugget(x, y, this,true,true);
+		m_actor.push_back(gold);
+	}
+
 	for (int i = 0; i < L; i++)
 	{
 		int x;
@@ -71,6 +80,19 @@ int StudentWorld::init()
 		makeCoordinate(x, y);
 		BarrelOfOil* barrel = new BarrelOfOil(x, y, this);
 		m_actor.push_back(barrel);
+	}
+
+	int probabilityOfHardcore = std::min(90, int(getLevel() * 10 + 30));
+	if (rand() % 100 > probabilityOfHardcore)
+	{
+		RegularProtester* protester = new RegularProtester(60,60,this);
+		m_actor.push_back(protester);
+		m_protestorVec.push_back(protester);
+	}
+	else {
+		HardcoreProtester* protester = new HardcoreProtester(60, 60,this);
+		m_actor.push_back(protester);
+		m_protestorVec.push_back(protester);
 	}
 
 	return GWSTATUS_CONTINUE_GAME;
@@ -88,7 +110,7 @@ void StudentWorld::textDisplay()
 	int sonar = m_tunnelman->getSonar();
 
 	//change oil number
-	int oil = 0;
+	int oil = m_barrelsNeeded;
 	ostringstream oss;
 	oss.setf(ios::fixed);
 	// “Scr: 0321000 Lvl: 52 Lives: 3 Hlth: 80% Water: 20 Gld: 3 Sonar: 1 Oil Left: 2”
@@ -114,6 +136,28 @@ int StudentWorld::move()
 	}
 
 	m_tunnelman->doSomething();
+	
+	int G = getLevel() * 25 + 300;
+
+	int itemProb = (int)((double)rand() / (RAND_MAX)* G);
+
+	if (itemProb == 1)
+	{
+		int x;
+		int y;
+		makeCoordinate(x, y);
+		if (getRandomNum(5) == 1)
+		{
+			SonarKit* sonar = new SonarKit(x,y,this);
+			m_actor.push_back(sonar);
+		}
+		else
+		{
+			int x = 0, y = 0;
+			WaterPool* pool = new WaterPool(x, y, this);
+			m_actor.push_back(pool);
+		}
+	}
 
 	if (!m_actor.empty())
 	{
@@ -125,7 +169,6 @@ int StudentWorld::move()
 			if ((*i)->isAlive())
 			{
 				(*i)->doSomething();
-				//If tunnelman dies
 			}
 		}
 
@@ -331,73 +374,103 @@ bool StudentWorld::isBoulder(int x, int y)const
 	}
 	return false;
 }
-/*std::queue<int> StudentWorld::computeShortestPath(int startX, int startY, int endX, int endY)
+void StudentWorld::revealSonar(int x, int y)
 {
-	std::queue<int> listOfDirections;
-	int visitedGrid[61][61];
-	for (int i = 0; i < 61; i++)
+	int goodieX;
+	int goodieY;
+	double xSide;
+	double ySide;
+	double radius;
+	for (size_t i = 0; i < m_actor.size(); i++)
 	{
+		if (m_actor[i]->getID() == TID_BARREL || m_actor[i]->getID() == TID_GOLD)
+		{
+
+			goodieX = m_actor[i]->getX();
+			goodieY = m_actor[i]->getY();
+			xSide = x - goodieX;
+			ySide = y - goodieY;
+			radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+
+			if (radius <= 12)
+			{
+				m_actor[i]->setVisible(true);
+			}
+		}
+	}
+}
+int StudentWorld::getTicks()const
+{
+	return ticks_elapsed;
+}
+class QItem {
+public:
+	int row;
+	int col;
+	string dir;
+	QItem(int x, int y, string w)
+		: row(x), col(y), dir(w)
+	{
+	}
+};
+string StudentWorld::shortestPath(int startX, int startY, int endX, int endY)const
+{
+	QItem source(0, 0, "");
+
+	// To keep track of visited QItems. Marking 
+	// blocked cells as visited. 
+	bool visited[61][61];
+	for (int i = 0; i < 61; i++) {
 		for (int j = 0; j < 61; j++)
 		{
-			visitedGrid[i][j] = grid[i][j];
+			if (grid[i][j] == 10)
+				visited[i][j] = true;
+			else
+				visited[i][j] = false;
 		}
 	}
-	//4:right,3:left,2:down,1:up,0:none
+	source.row = startX;
+	source.col = startY;
 
-	struct node
-	{
-		node(int X, int Y)
-		{
-			x = X;
-			y = Y;
-			found = false;
-		}
-		int dir;
-		int x;
-		int y;
-		bool found;
-		node* up;
-		node* down;
-		node* left;
-		node* right;
-	};
+	// applying BFS on matrix cells starting from source 
+	queue<QItem> q;
+	q.push(source);
+	visited[source.row][source.col] = true;
+	while (!q.empty()) {
+		QItem p = q.front();
+		q.pop();
 
-	node* root = new node(startX,startY);
-	bool done = false;
-	node* current = root;
+		// Destination found; 
+		if (p.row==endX && p.col == endY)
+			return p.dir;
 
-	while (!done)
-	{
-		if (current->x == endX && current->y == endY)
-		{
-			done = true;
+		// moving up 
+		if (p.row - 1 >= 0 &&
+			visited[p.row - 1][p.col] == false) {
+			q.push(QItem(p.row - 1, p.col, p.dir + "1"));
+			visited[p.row - 1][p.col] = true;
 		}
-		else if (visitedGrid[current->x][current->y + 1]==0 && current->y+1<=60)
-		{
-			current->up = new node(current->x, current->y + 1);
-			current->dir = 1;
-			visitedGrid[current->x][current->y + 1] = 1;
+
+		// moving down 
+		if (p.row + 1 < 61 &&
+			visited[p.row + 1][p.col] == false) {
+			q.push(QItem(p.row + 1, p.col, p.dir + "2"));
+			visited[p.row + 1][p.col] = true;
 		}
-		else if (visitedGrid[current->x][current->y - 1] == 0 && current->y - 1>=0)
-		{
-			current->down = new node(current->x, current->y - 1);
-			current->dir = 2;
-			visitedGrid[current->x][current->y - 1] = 1;
+
+		// moving left 
+		if (p.col - 1 >= 0 &&
+			visited[p.row][p.col - 1] == false) {
+			q.push(QItem(p.row, p.col - 1, p.dir + "3"));
+			visited[p.row][p.col - 1] = true;
 		}
-		else if (visitedGrid[current->x-1][current->y] == 0 && current->y - 1>=0)
-		{
-			current->left = new node(current->x-1, current->y);
-			current->dir = 3;
-			visitedGrid[current->x - 1][current->y] = 1;
-		}
-		else if (visitedGrid[current->x+1][current->y] == 0 && current->x + 1<=60)
-		{
-			current->right = new node(current->x+1, current->y);
-			current->dir = 4;
-			visitedGrid[current->x + 1][current->y] = 1;
+
+		// moving right 
+		if (p.col + 1 < 61 &&
+			visited[p.row][p.col + 1] == false) {
+			q.push(QItem(p.row, p.col + 1, p.dir + "4"));
+			visited[p.row][p.col + 1] = true;
 		}
 	}
-
-	
-
-}*/
+	return "0";
+}

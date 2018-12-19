@@ -65,6 +65,7 @@ void Boulder::doSomething()
 			if (radius <= 3)
 			{
 				getWorld()->getProtestorVec().at(i)->setAnnoyance(100);
+				getWorld()->increaseScore(500);
 			}
 		}
 		xSide = getX() - tunnelManX;
@@ -187,7 +188,7 @@ void TunnelMan::doSomething()
 		{
 			if (m_sonarCharge <= 0)
 				break;
-			//getWorld()->revealSonar(getX(), getY());
+			getWorld()->revealSonar(getX(), getY());
 			m_sonarCharge--;
 		}
 
@@ -225,6 +226,14 @@ void TunnelMan::incrementAmmo()
 void TunnelMan::incrementSonar()
 {
 	m_sonarCharge++;
+}
+void TunnelMan::incrementGold()
+{
+	m_goldNuggets++;
+}
+void TunnelMan::decrementGold()
+{
+	m_goldNuggets--;
 }
 WaterSquirt::WaterSquirt(int x, int y, StudentWorld * world, Direction dir) :
 	Actor(TID_WATER_SPURT, x, y, world, dir, 1.0, 1),m_ticksLeft(0)
@@ -354,14 +363,77 @@ void BarrelOfOil::doSomething()
 		getWorld()->decrementBarrelsNeeded();
 	}
 }
-GoldNugget::GoldNugget(int x, int y, StudentWorld *world) :
-	Goodie(TID_GOLD, x, y, world, right, 1.0, 2)
+GoldNugget::GoldNugget(int x, int y, StudentWorld *world, bool pickState, bool permState) :
+	Goodie(TID_GOLD, x, y, world, right, 1.0, 2), m_ticksLeft(std::max(100, int(300 - 10 * world->getLevel()))),m_pickableState(pickState),m_permanentState(permState)
 {
-
+	setVisible(false);
 }
 void GoldNugget::doSomething()
 {
+	if (!isAlive())
+	{
+		return;
+	}
 
+	if (!m_permanentState)
+	{
+		m_ticksLeft--;
+		if (m_ticksLeft <= 0)
+		{
+			setDead();
+		}
+	}
+
+	int tunnelManX = getWorld()->getTunnelMan()->getX();
+	int tunnelManY = getWorld()->getTunnelMan()->getY();
+	double xSide = getX() - tunnelManX;
+	double ySide = getY() - tunnelManY;
+	double radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+	if (radius <= 4 && !isVisible())
+	{
+		setVisible(true);
+		return;
+	}
+
+	if (radius <= 3 && m_pickableState)
+	{
+		setDead();
+		getWorld()->playSound(SOUND_GOT_GOODIE);
+		getWorld()->increaseScore(10);
+		getWorld()->getTunnelMan()->incrementGold();
+	}
+
+	for (size_t i = 0; i < getWorld()->getProtestorVec().size(); i++)
+	{
+		xSide = getX() - getWorld()->getProtestorVec().at(i)->getX();
+		ySide = getY() - getWorld()->getProtestorVec().at(i)->getY();
+		radius = sqrt(pow(xSide, 2.0) + pow(ySide, 2.0));
+
+		if (radius <= 3 && !m_pickableState)
+		{
+			setDead();
+			getWorld()->playSound(SOUND_PROTESTER_FOUND_GOLD);
+			getWorld()->getProtestorVec().at(i)->setBribe(true);
+			getWorld()->increaseScore(25);
+			return;
+		}
+	}
+}
+bool GoldNugget::getPickableState()const
+{
+	return m_pickableState;
+}
+void GoldNugget::setPickableState(bool state)
+{
+	m_pickableState = state;
+}
+bool GoldNugget::getPermanentState()const
+{
+	return m_permanentState;
+}
+void GoldNugget::setPermanentState(bool permState)
+{
+	m_permanentState = permState;
 }
 SonarKit::SonarKit(int x, int y, StudentWorld * world) :
 	Goodie(TID_SONAR,x,y,world,right,1.0,2),m_ticksLeft(std::max(100, int(300 - 10 * world->getLevel())))
@@ -391,11 +463,12 @@ void SonarKit::doSomething()
 		setDead();
 		getWorld()->playSound(SOUND_GOT_GOODIE);
 		getWorld()->increaseScore(75);
+		getWorld()->getTunnelMan()->incrementSonar();
 	}
 }
 Protester::Protester(int imageID, int x, int y, StudentWorld* world, int hitPoints) :
 	Actor(imageID, x, y, world, left, 1.0, 0),m_health(hitPoints),m_leaveField(false),
-	m_ticksToWaitBetweenMoves(std::max(0, int(3 - world->getLevel() / 4))),m_annoyance(0)
+	m_ticksToWaitBetweenMoves(std::max(0, int(3 - world->getLevel() / 4))),m_annoyance(0),m_bribed(false)
 {
 
 }
@@ -406,6 +479,34 @@ int Protester::numSquaresToMoveInCurrentDirection()const
 void Protester::setAnnoyance(int annoy)
 {
 	m_annoyance = annoy;
+}
+void Protester::setBribe(bool bribed)
+{
+	m_bribed = bribed;
+}
+void Protester::setHealth(int health)
+{
+	m_health = health;
+}
+void Protester::setFieldStatus(bool leave)
+{
+	m_leaveField = leave;
+}
+int Protester::getHealth()const
+{
+	return m_health;
+}
+bool Protester::getFieldStatus()const
+{
+	return m_leaveField;
+}
+int Protester::getTicksToWait()const
+{
+	return m_ticksToWaitBetweenMoves;
+}
+int Protester::getAnnoyance()const
+{
+	return m_annoyance;
 }
 RegularProtester::RegularProtester(int x, int y, StudentWorld* world):
 	Protester(TID_PROTESTER, x, y, world, 5)
@@ -419,12 +520,85 @@ void RegularProtester::doSomething()
 		return;
 	}
 
-	if (m_health == 0)
+	if (getWorld()->getTicks()%getTicksToWait() != 0)
 	{
-		m_leaveField = true;
-		if (getX() == 60 && getY() == 60)
-		{
-			setDead();
-		}
+		return;
 	}
+
+	if (getAnnoyance() >= 100)
+	{
+		setFieldStatus(true);
+	}
+	if (getX() == 60 && getY() == 60 && getFieldStatus())
+	{
+		setDead();
+	}
+
+	std::string listDirections;
+	if (getFieldStatus())
+	{
+		listDirections = getWorld()->shortestPath(getX(), getY(), 60, 60);
+	}
+	else
+	{
+		listDirections = getWorld()->shortestPath(getX(), getY(), getWorld()->getTunnelMan()->getX(), getWorld()->getTunnelMan()->getY());
+	}
+
+	char KeyPressed = listDirections[0];
+	switch (KeyPressed)
+	{
+	case  '1':
+
+		if (getY() < 60 && getDirection() == up && !getWorld()->isBoulder(getX(), getY() + 1))
+		{
+			moveTo(getX(), getY() + 1);
+		}
+		else
+		{
+			setDirection(up);
+		}
+		break;
+	case '2':
+		if (getY() > 0 && getDirection() == down && !getWorld()->isBoulder(getX(), getY() - 1))
+		{
+			moveTo(getX(), getY() - 1);
+		}
+		else
+		{
+			setDirection(down);
+		}
+		break;
+	case '3':
+		if (getX() > 0 && getDirection() == left && !getWorld()->isBoulder(getX() - 1, getY()))
+		{
+			moveTo(getX() - 1, getY());
+		}
+		else
+		{
+			setDirection(left);
+		}
+		break;
+	case '4':
+		if (getX() < 60 && getDirection() == right && !getWorld()->isBoulder(getX() + 1, getY()))
+		{
+			moveTo(getX() + 1, getY());
+		}
+		else
+		{
+			setDirection(right);
+		}
+		break;
+	}
+
+
+
+}
+HardcoreProtester::HardcoreProtester(int x, int y, StudentWorld* world):
+	Protester(TID_HARD_CORE_PROTESTER, x, y, world, 20)
+{
+
+}
+void HardcoreProtester::doSomething()
+{
+
 }
